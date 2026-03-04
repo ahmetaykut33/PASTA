@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sürpriz Pasta</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #c9184a;
+            --bg-dark: #0a090c;
+            --text-light: #f8edeb;
+            --cake-t1-side: #2b1418; 
+            --cake-t1-top: #3e1f24;
+            --cake-t2-side: #c9184a; 
+            --cake-t2-top: #ff4d6d;
+            --cake-t3-side: #e0d4d6; 
+            --cake-t3-top: #f8edeb;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.2;
+            animation: floatOrb 8s infinite alternate ease-in-out;
+            z-index: 0;
+        }
+        .orb-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; }
+        .orb-2 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; right: -100px; }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 2.5em;
+            opacity: 0.15;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+            animation: floatIcon 12s infinite alternate ease-in-out;
+            z-index: 1;
+            user-select: none;
+        }
+        .icon-1 { top: 15%; left: 10%; animation-delay: 0s; }
+        .icon-2 { bottom: 20%; right: 15%; animation-delay: -3s; }
+        .icon-3 { top: 25%; right: 10%; animation-delay: -6s; font-size: 2em; }
+        .icon-4 { bottom: 30%; left: 15%; animation-delay: -9s; font-size: 3em; }
+
+        #message-container {
+            position: absolute;
+            top: 10%;
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 1.8em;
+            font-weight: 300;
+            letter-spacing: 1px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 50;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .show-message {
+            opacity: 1 !important;
+            transform: translateY(0) scale(1) !important;
+        }
+
+        .cake-container {
+            position: relative;
+            margin-top: 150px;
+            width: 300px;
+            height: 300px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        .tier {
+            position: absolute;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            justify-content: center;
+        }
+
+        .tier-body {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .tier-body::before {
+            content: '';
+            position: absolute;
+            top: -25px;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: inset 0 -5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tier-body::after {
+            content: '';
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            border-radius: 50%;
+            z-index: 0;
+            box-shadow: 0 15px 20px rgba(0,0,0,0.4);
+        }
+
+        .tier-1 { bottom: 50px; width: 240px; height: 90px; z-index: 3; }
+        .tier-1 .tier-body { background: var(--cake-t1-side); }
+        .tier-1 .tier-body::before { background: var(--cake-t1-top); }
+        .tier-1 .tier-body::after { background: var(--cake-t1-side); }
+
+        .tier-2 { bottom: 140px; width: 180px; height: 75px; z-index: 4; }
+        .tier-2 .tier-body { background: var(--cake-t2-side); }
+        .tier-2 .tier-body::before { background: var(--cake-t2-top); }
+        .tier-2 .tier-body::after { background: var(--cake-t2-side); }
+
+        .tier-3 { bottom: 215px; width: 120px; height: 60px; z-index: 5; }
+        .tier-3 .tier-body { background: var(--cake-t3-side); }
+        .tier-3 .tier-body::before { background: var(--cake-t3-top); }
+        .tier-3 .tier-body::after { background: var(--cake-t3-side); }
+
+        .visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .strawberries {
+            position: absolute;
+            top: -20px;
+            width: 100%;
+            height: 50px;
+            z-index: 6;
+            opacity: 0;
+            transition: opacity 1s ease 0.5s;
+        }
+        .strawberry {
+            position: absolute;
+            width: 18px;
+            height: 22px;
+            background: radial-gradient(circle at 30% 30%, #ff4757, #a50211);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: inset -3px -3px 5px rgba(0,0,0,0.3), 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        .strawberry::before {
+            content: '🌿';
+            position: absolute;
+            top: -12px;
+            left: -2px;
+            font-size: 12px;
+        }
+        .s1 { top: 15px; left: 10px; transform: rotate(-15deg); }
+        .s2 { top: 5px; left: 50px; transform: rotate(5deg); }
+        .s3 { top: 15px; right: 10px; transform: rotate(15deg); }
+
+        .candle {
+            width: 12px;
+            height: 45px;
+            background: repeating-linear-gradient(45deg, #fff, #fff 5px, #ffb8b8 5px, #ffb8b8 10px);
+            position: absolute;
+            bottom: 280px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 1s ease 0.5s;
+            z-index: 7;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .flame {
+            width: 16px;
+            height: 30px;
+            background: radial-gradient(ellipse at bottom, #fff 10%, #ffeb3b 40%, #ff9800 80%, transparent 100%);
+            border-radius: 50% 50% 20% 20%;
+            position: absolute;
+            top: -30px;
+            left: -2px;
+            box-shadow: 0 0 20px #ff9800, 0 0 40px #ff9800, 0 0 60px #ffeb3b;
+            animation: flicker 0.4s infinite alternate;
+            transition: opacity 0.5s ease;
+        }
+
+        .extinguished {
+            opacity: 0;
+            animation: none;
+        }
+
+        @keyframes flicker {
+            0% { transform: scale(1) rotate(-1deg); }
+            100% { transform: scale(1.05) rotate(2deg); opacity: 0.9; }
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 40px); }
+        }
+
+        @keyframes floatIcon {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-30px) rotate(10deg); }
+        }
+
+        #hint {
+            margin-top: 60px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; color: var(--primary); }
+            100% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="fireworkSound" src="havai-fisek.mp3" preload="auto"></audio>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="floating-icon icon-1">🐼</div>
+    <div class="floating-icon icon-2">🐹</div> 
+    <div class="floating-icon icon-3">🐼</div>
+    <div class="floating-icon icon-4">🦦</div> 
+
+    <div id="message-container"></div>
+
+    <div class="cake-container" onclick="handleCakeClick()">
+        <div class="tier tier-1" id="tier1"><div class="tier-body"></div></div>
+        <div class="tier tier-2" id="tier2"><div class="tier-body"></div></div>
+        <div class="tier tier-3" id="tier3">
+            <div class="tier-body"></div>
+            <div class="strawberries" id="strawberries">
+                <div class="strawberry s1"></div>
+                <div class="strawberry s2"></div>
+                <div class="strawberry s3"></div>
+            </div>
+        </div>
+
+        <div class="candle" id="candle">
+            <div class="flame" id="flame"></div>
+        </div>
+    </div>
+
+    <div id="hint">Pastayı inşa etmek için tıkla ✨</div>
+
+    <script>
+        let currentStep = 0;
+        const msgContainer = document.getElementById('message-container');
+        const hint = document.getElementById('hint');
+
+        window.onload = () => {
+            confetti({
+                particleCount: 30,
+                spread: 60,
+                origin: { y: 0.1 },
+                colors: ['#ff4d6d', '#c9184a', '#ffffff']
+            });
+        };
+
+        function showMessage(text) {
+            msgContainer.classList.remove('show-message');
+            setTimeout(() => {
+                msgContainer.innerHTML = text;
+                msgContainer.classList.add('show-message');
+            }, 300);
+        }
+
+        function handleCakeClick() {
+            if (currentStep === 0) {
+                document.getElementById('tier1').classList.add('visible');
+                showMessage("Seninle geçen her an, hayatımın en güzel parçası... 🖤");
+                hint.innerHTML = "Devam et...";
+                currentStep++;
+            } 
+            else if (currentStep === 1) {
+                document.getElementById('tier2').classList.add('visible');
+                showMessage("Gülüşün karanlık dünyamı aydınlatıyor... ✨");
+                currentStep++;
+            } 
+            else if (currentStep === 2) {
+                document.getElementById('tier3').classList.add('visible');
+                document.getElementById('candle').style.opacity = '1';
+                document.getElementById('strawberries').style.opacity = '1';
+                showMessage("İyi ki doğdun, iyi ki benimlesin! 🥰");
+                hint.innerHTML = "Gözlerini kapat, bir dilek tut ve muma tıkla! 🎂";
+                hint.style.color = "#ff4d6d";
+                currentStep++;
+            } 
+            else if (currentStep === 3) {
+                document.getElementById('flame').classList.add('extinguished');
+                showMessage("Tüm dileklerin gerçek olsun sevgilim! 🎉🐼");
+                hint.style.opacity = '0';
+
+                fireworksFinale();
+                currentStep++;
+            }
+        }
+
+        function fireworksFinale() {
+            // Sesi başlatma bölümü eklendi
+            const sound = document.getElementById('fireworkSound');
+            if (sound) {
+                sound.volume = 0.5; // Sesi rahatsız etmeyecek bir seviyeye (%50) çektik
+                sound.play().catch(e => console.log("Ses oynatılamadı:", e));
+            }
+
+            let duration = 5 * 1000;
+            let animationEnd = Date.now() + duration;
+
+            let interval = setInterval(function() {
+                let timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+
+                let particleCount = 50 * (timeLeft / duration);
+                
+                confetti({
+                    particleCount, angle: 60, spread: 80, origin: { x: 0, y: 0.8 },
+                    colors: ['#ff4d6d', '#c9184a', '#ffffff', '#ffd700']
+                });
+                confetti({
+                    particleCount, angle: 120, spread: 80, origin: { x: 1, y: 0.8 },
+                    colors: ['#ff4d6d', '#c9184a', '#ffffff', '#ffd700']
+                });
+            }, 250);
+        }
+    </script>
+</body>
+</html>

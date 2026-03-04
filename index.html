@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sana Özel...</title>
+    <style>
+        /* Modern renk paleti ve değişkenler */
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #c9184a;
+            --bg-dark: #0a090c;
+            --text-light: #f8edeb;
+        }
+
+        body, html {
+            margin: 0; 
+            padding: 0; 
+            height: 100%;
+            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            overflow: hidden;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            color: var(--text-light);
+        }
+
+        /* Arka plandaki hareketli, flulaştırılmış neon ışıklar */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.4;
+            animation: float 10s infinite alternate ease-in-out;
+            z-index: 0;
+        }
+        .orb-1 { 
+            width: 350px; height: 350px; 
+            background: var(--primary); 
+            top: -100px; left: -100px; 
+        }
+        .orb-2 { 
+            width: 450px; height: 450px; 
+            background: var(--secondary); 
+            bottom: -150px; right: -100px; 
+            animation-delay: -5s; 
+        }
+        
+        /* Premium hissi veren ince detaylı Glassmorphism Kart */
+        .card {
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 70px 50px;
+            text-align: center;
+            max-width: 500px;
+            width: 85%;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            transform: translateY(30px);
+            opacity: 0;
+            animation: fadeUp 1.5s forwards cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin-bottom: 25px;
+            background: linear-gradient(to right, #ffb3c6, #ff4d6d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 0;
+        }
+
+        /* Daktilo efekti için metin alanı */
+        .typing-text {
+            min-height: 70px; /* Yazı gelirken kartın yüksekliği oynamasın diye */
+            font-size: 1.15em;
+            line-height: 1.6;
+            color: #b0b0b0;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        /* Yanıp sönen imleç */
+        .typing-text::after {
+            content: '|';
+            animation: blink 1s infinite;
+            color: var(--primary);
+        }
+
+        /* Yönlendirme Butonu */
+        .btn {
+            position: relative;
+            display: inline-block;
+            padding: 15px 45px;
+            background: transparent;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 1.1em;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255, 77, 109, 0.4);
+            border-radius: 50px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+        }
+        
+        /* Buton Hover Efekti (İçini dolduran renk geçişi) */
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 0%; height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: -1;
+        }
+
+        .btn:hover::before { width: 100%; }
+        .btn:hover {
+            border-color: transparent;
+            box-shadow: 0 0 25px rgba(255, 77, 109, 0.5);
+            transform: translateY(-3px);
+        }
+
+        /* Animasyonlar */
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 60px); }
+        }
+        @keyframes fadeUp {
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="card">
+        <h1>Sadece Senin İçin</h1>
+        <div class="typing-text" id="typewriter"></div>
+        
+        <a href="pasta.html" class="btn" id="revealBtn" style="opacity: 0; pointer-events: none; transition: opacity 1s, transform 0.4s;">
+            Sürprizi Keşfet
+        </a>
+    </div>
+
+    <script>
+        // Yazılacak gizemli metin
+        const text = "Bugün senin günün. Senin için sadece ikimizin olduğu küçük bir dünya tasarladım. İçeri girmeye hazır mısın?";
+        const speed = 60; // Harf yazılma hızı (milisaniye)
+        let i = 0;
+        
+        const target = document.getElementById("typewriter");
+        const btn = document.getElementById("revealBtn");
+
+        function typeWriter() {
+            if (i < text.length) {
+                target.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, speed);
+            } else {
+                // Yazı bittikten kısa bir süre sonra butonu ortaya çıkar
+                setTimeout(() => {
+                    btn.style.opacity = "1";
+                    btn.style.pointerEvents = "auto";
+                }, 800);
+            }
+        }
+
+        // Kartın yukarı doğru gelme animasyonunun bitmesini (yaklaşık 2 saniye) bekleyip yazıyı başlatıyoruz
+        setTimeout(typeWriter, 2000);
+    </script>
+</body>
+</html>
